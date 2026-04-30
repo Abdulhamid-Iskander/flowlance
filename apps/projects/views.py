@@ -1,9 +1,6 @@
-from django.shortcuts import render
-from django.contrib.auth import get_user_model
 from django.shortcuts import render, redirect
-from .services import create_new_project
-
-from .services import get_dashboard_stats, get_recent_projects, get_user_tasks
+from django.contrib.auth import get_user_model
+from .services import get_dashboard_stats, get_recent_projects, get_user_tasks, create_new_project
 
 User = get_user_model()
 
@@ -28,11 +25,11 @@ def dashboard_view(request):
     }
     return render(request, 'projects/dashboard.html', context)
 
-
-
 def create_project_view(request):
+    user = request.user if request.user.is_authenticated else User.objects.first()
+    
     if request.method == 'POST':
-        create_new_project(request.user, request.POST)
+        create_new_project(user, request.POST)
         return redirect('projects:dashboard')
         
     return render(request, 'projects/create.html')
