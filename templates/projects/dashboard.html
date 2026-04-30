@@ -6,9 +6,9 @@
         <h1>Welcome back, {{ username }} 👋</h1>
         <p style="color: var(--text-muted); margin-top: 5px;">Here's what's happening with your projects today.</p>
     </div>
-    <button style="background-color: var(--primary-green); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+    <a href="{% url 'projects:create_project' %}" style="background-color: var(--primary-green); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block;">
         Post Project
-    </button>
+    </a>
 </div>
 
 <div class="stats-grid">
