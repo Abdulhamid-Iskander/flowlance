@@ -1,6 +1,7 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model
-from .services import get_dashboard_stats, get_recent_projects, get_user_tasks, create_new_project
+from .models import Project, Proposal
+from .services import get_dashboard_stats, get_recent_projects, get_user_tasks, create_new_project, submit_proposal, accept_proposal
 
 User = get_user_model()
 
@@ -33,3 +34,24 @@ def create_project_view(request):
         return redirect('projects:dashboard')
         
     return render(request, 'projects/create.html')
+
+def project_detail_view(request, pk):
+    user = request.user if request.user.is_authenticated else User.objects.first()
+    project = get_object_or_404(Project, pk=pk)
+    proposals = project.proposals.all()
+
+    if request.method == 'POST' and 'bid_amount' in request.POST:
+        submit_proposal(user, project.id, request.POST)
+        return redirect('projects:project_detail', pk=project.id)
+
+    context = {
+        'project': project,
+        'proposals': proposals,
+        'is_client': True,
+    }
+    return render(request, 'projects/detail.html', context)
+
+def accept_proposal_view(request, proposal_id):
+    accept_proposal(proposal_id)
+    proposal = get_object_or_404(Proposal, id=proposal_id)
+    return redirect('projects:project_detail', pk=proposal.project.id)
