@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowlance - Dashboard</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>Flowlance</h2>
+            </div>
+            <nav class="sidebar-menu">
+                <p class="menu-label">MAIN</p>
+                <a href="#" class="active">Dashboard</a>
+                <a href="#">Marketplace</a>
+                <a href="#">My Projects</a>
+                
+                <p class="menu-label">WORK</p>
+                <a href="#">Workflow</a>
+                <a href="#">Teams</a>
+                <a href="#">Proposals</a>
+                <a href="#">Milestones</a>
+                
+                <p class="menu-label">OTHER</p>
+                <a href="#">Notifications</a>
+            </nav>
+        </aside>
+
+        <div class="main-content">
+            <header class="top-navbar">
+                <div class="nav-links">
+                    <a href="#" class="active">Dashboard</a>
+                    <a href="#">Marketplace</a>
+                    <a href="#">Teams</a>
+                    <a href="#">Workflow</a>
+                </div>
+                <div class="user-actions">
+                    <span class="notification-icon">🔔</span>
+                    <div class="user-profile">
+                        <span class="avatar">A</span>
+                        <span class="username">Ahmed</span>
+                    </div>
+                </div>
+            </header>
+
+            <main class="page-content">
+                {% block content %}
+                {% endblock %}
+            </main>
+        </div>
+    </div>
+</body>
+</html>

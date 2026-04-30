@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <h1>Welcome back, {{ username }} 👋</h1>
+        <p style="color: var(--text-muted); margin-top: 5px;">Here's what's happening with your projects today.</p>
+    </div>
+    <button style="background-color: var(--primary-green); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+        Post Project
+    </button>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card" style="border-left: 4px solid #4a90e2;">
+        <div class="icon">📁</div>
+        <div>
+            <h3>{{ total_projects }}</h3>
+            <p>Total Projects</p>
+        </div>
+    </div>
+
+    <div class="stat-card" style="border-left: 4px solid var(--primary-green);">
+        <div class="icon">🟢</div>
+        <div>
+            <h3>{{ open_projects }}</h3>
+            <p>Open Projects</p>
+        </div>
+    </div>
+
+    <div class="stat-card" style="border-left: 4px solid #f5a623;">
+        <div class="icon">⚡</div>
+        <div>
+            <h3>{{ active_workflows }}</h3>
+            <p>Active Workflows</p>
+        </div>
+    </div>
+
+    <div class="stat-card" style="border-left: 4px solid #bd10e0;">
+        <div class="icon">✉️</div>
+        <div>
+            <h3>{{ pending_proposals }}</h3>
+            <p>Pending Proposals</p>
+        </div>
+    </div>
+</div>
+
+<div class="content-grid">
+    <div class="projects-section">
+        <div class="section-header">
+            <h3>Recent Projects</h3>
+            <a href="#" class="view-btn">View All</a>
+        </div>
+        
+        {% for project in recent_projects %}
+        <div class="project-card">
+            <div class="project-header">
+                <h4>{{ project.title }}</h4>
+                <span class="status-badge status-{{ project.status|lower }}">{{ project.get_status_display }}</span>
+            </div>
+            <p class="project-desc">{{ project.description|truncatewords:15 }}</p>
+            <div class="project-meta">
+                <span>${{ project.budget }}</span>
+                <span>{{ project.deadline|date:"M d, Y" }}</span>
+            </div>
+            <div class="project-tags">
+                {% for tag in project.skills_required.all %}
+                <span class="tag">{{ tag.name }}</span>
+                {% endfor %}
+            </div>
+            <div class="project-progress">
+                <div class="progress-info">
+                    <span>Progress</span>
+                    <span>45%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 45%;"></div>
+                </div>
+            </div>
+            <div class="project-actions">
+                <button class="btn-outline">View Details</button>
+                {% if project.status == 'OPEN' %}
+                <button class="btn-primary">Submit Proposal</button>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p>No recent projects found.</p>
+        {% endfor %}
+    </div>
+
+    <div class="tasks-section">
+        <div class="section-header">
+            <h3>My Tasks</h3>
+            <a href="#" class="view-btn">Board</a>
+        </div>
+        
+        <div class="task-list">
+            {% for task in user_tasks %}
+            <div class="task-item">
+                <div class="task-info">
+                    <h4>{{ task.name }}</h4>
+                    <p>{{ task.project.title }}</p>
+                </div>
+                <span class="task-status task-{{ task.status|lower }}">{{ task.get_status_display }}</span>
+            </div>
+            {% empty %}
+            <p>No tasks assigned to you.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
