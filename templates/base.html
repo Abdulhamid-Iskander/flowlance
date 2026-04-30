@@ -15,7 +15,7 @@
             </div>
             <nav class="sidebar-menu">
                 <p class="menu-label">MAIN</p>
-                <a href="#" class="active">Dashboard</a>
+                <a href="{% url 'projects:dashboard' %}" class="active">Dashboard</a>
                 <a href="#">Marketplace</a>
                 <a href="#">My Projects</a>
                 
@@ -33,16 +33,21 @@
         <div class="main-content">
             <header class="top-navbar">
                 <div class="nav-links">
-                    <a href="#" class="active">Dashboard</a>
+                    <a href="{% url 'projects:dashboard' %}" class="active">Dashboard</a>
                     <a href="#">Marketplace</a>
                     <a href="#">Teams</a>
                     <a href="#">Workflow</a>
                 </div>
                 <div class="user-actions">
-                    <span class="notification-icon">🔔</span>
+                    <a href="{% url 'projects:read_notifications' %}" style="position: relative; text-decoration: none; margin-right: 15px;">
+                        <span class="notification-icon" style="font-size: 22px;">🔔</span>
+                        {% if unread_notifications_count > 0 %}
+                        <span style="position: absolute; top: -5px; right: -8px; background-color: #ff4d4f; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px; font-weight: bold;">{{ unread_notifications_count }}</span>
+                        {% endif %}
+                    </a>
                     <div class="user-profile">
                         <span class="avatar">A</span>
-                        <span class="username">Ahmed</span>
+                        <span class="username">User</span>
                     </div>
                 </div>
             </header>

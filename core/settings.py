@@ -3,6 +3,10 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SECRET_KEY = 'django-insecure-flowlance-secret-key-test'
+DEBUG = True
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -25,6 +29,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+ROOT_URLCONF = 'core.urls'
+WSGI_APPLICATION = 'core.wsgi.application'
+
 AUTH_USER_MODEL = 'users.User'
 
 TEMPLATES = [
@@ -38,13 +45,11 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.projects.context_processors.notifications_processor',
             ],
         },
     },
 ]
-
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 DATABASES = {
     'default': {
@@ -53,12 +58,5 @@ DATABASES = {
     }
 }
 
-SECRET_KEY = 'django-insecure-flowlance-secret-key-test'
-
-DEBUG = True
-
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-
-ROOT_URLCONF = 'core.urls'
-
-WSGI_APPLICATION = 'core.wsgi.application'
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]

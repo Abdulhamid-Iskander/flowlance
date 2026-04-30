@@ -68,20 +68,22 @@
                 <span class="tag">{{ tag.name }}</span>
                 {% endfor %}
             </div>
+            
+            {% if project.status == 'IN_PROGRESS' %}
             <div class="project-progress">
                 <div class="progress-info">
                     <span>Progress</span>
-                    <span>45%</span>
+                    <span>{{ project.progress }}%</span>
                 </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 45%;"></div>
-                </div>
+               <div class="progress-bar" style="--prog: {{ project.progress }}%;">
+    <div class="progress-fill" style="width: var(--prog);"></div>
+</div>
+
             </div>
+            {% endif %}
+
             <div class="project-actions">
-                <button class="btn-outline">View Details</button>
-                {% if project.status == 'OPEN' %}
-                <button class="btn-primary">Submit Proposal</button>
-                {% endif %}
+                <a href="{% url 'projects:project_detail' project.id %}" class="btn-outline" style="text-decoration: none; display: inline-block;">View Details</a>
             </div>
         </div>
         {% empty %}
@@ -102,7 +104,15 @@
                     <h4>{{ task.name }}</h4>
                     <p>{{ task.project.title }}</p>
                 </div>
-                <span class="task-status task-{{ task.status|lower }}">{{ task.get_status_display }}</span>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="status-badge task-{{ task.status|lower }}">{{ task.get_status_display }}</span>
+                    
+                    {% if task.status == 'TO_DO' %}
+                    <a href="{% url 'projects:update_task_status' task.id 'IN_PROGRESS' %}" class="btn-outline" style="padding: 4px 8px; font-size: 12px; text-decoration: none;">Start</a>
+                    {% elif task.status == 'IN_PROGRESS' %}
+                    <a href="{% url 'projects:update_task_status' task.id 'SUBMITTED' %}" class="btn-primary" style="padding: 4px 8px; font-size: 12px; text-decoration: none;">Submit</a>
+                    {% endif %}
+                </div>
             </div>
             {% empty %}
             <p>No tasks assigned to you.</p>

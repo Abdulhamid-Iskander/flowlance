@@ -1,4 +1,4 @@
-from .models import Project, Proposal, Task
+from .models import Project, Proposal, Task, Notification
 
 def get_dashboard_stats(user):
     total_projects = Project.objects.filter(client=user).count()
@@ -14,7 +14,15 @@ def get_dashboard_stats(user):
     }
 
 def get_recent_projects(user):
-    return Project.objects.filter(client=user).order_by('-created_at')[:2]
+    projects = Project.objects.filter(client=user).order_by('-created_at')[:2]
+    for project in projects:
+        total_tasks = project.tasks.count()
+        if total_tasks > 0:
+            completed_tasks = project.tasks.filter(status__in=['SUBMITTED', 'UNDER_REVIEW']).count()
+            project.progress = int((completed_tasks / total_tasks) * 100)
+        else:
+            project.progress = 0
+    return projects
 
 def get_user_tasks(user):
     return Task.objects.filter(assignee=user)[:5]
@@ -44,6 +52,10 @@ def submit_proposal(user, project_id, data):
         bid_amount=data.get('bid_amount'),
         duration=data.get('duration')
     )
+    Notification.objects.create(
+        user=project.client,
+        message=f"New proposal submitted by {user.username} for {project.title}"
+    )
 
 def accept_proposal(proposal_id):
     proposal = Proposal.objects.get(id=proposal_id)
@@ -65,3 +77,21 @@ def accept_proposal(proposal_id):
             status='TO_DO',
             assignee=proposal.freelancer
         )
+        
+    Notification.objects.create(
+        user=proposal.freelancer,
+        message=f"Congratulations! Your proposal for {project.title} was accepted."
+    )
+
+def update_task_status(task_id, new_status):
+    task = Task.objects.get(id=task_id)
+    task.status = new_status
+    task.save()
+    
+    Notification.objects.create(
+        user=task.project.client,
+        message=f"Task '{task.name}' status updated to {new_status}."
+    )
+
+def mark_notifications_read(user):
+    Notification.objects.filter(user=user, is_read=False).update(is_read=True)

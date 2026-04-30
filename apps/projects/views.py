@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model
 from .models import Project, Proposal
-from .services import get_dashboard_stats, get_recent_projects, get_user_tasks, create_new_project, submit_proposal, accept_proposal
+from .services import get_dashboard_stats, get_recent_projects, get_user_tasks, create_new_project, submit_proposal, accept_proposal, update_task_status, mark_notifications_read
 
 User = get_user_model()
 
@@ -55,3 +55,12 @@ def accept_proposal_view(request, proposal_id):
     accept_proposal(proposal_id)
     proposal = get_object_or_404(Proposal, id=proposal_id)
     return redirect('projects:project_detail', pk=proposal.project.id)
+
+def update_task_status_view(request, task_id, new_status):
+    update_task_status(task_id, new_status)
+    return redirect('projects:dashboard')
+
+def read_notifications_view(request):
+    user = request.user if request.user.is_authenticated else User.objects.first()
+    mark_notifications_read(user)
+    return redirect(request.META.get('HTTP_REFERER', 'projects:dashboard'))

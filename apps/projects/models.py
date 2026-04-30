@@ -44,3 +44,15 @@ class Task(models.Model):
     name = models.CharField(max_length=255)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='TO_DO')
     assignee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+
+class Team(models.Model):
+    name = models.CharField(max_length=255)
+    leader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='led_teams')
+    members = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='teams')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class Notification(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    message = models.CharField(max_length=255)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
