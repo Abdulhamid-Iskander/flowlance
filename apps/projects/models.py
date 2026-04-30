@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from taggit.managers import TaggableManager
 
-class Project(models.fields.Model):
+class Project(models.Model):
     STATUS_CHOICES = (
         ('OPEN', 'Open'),
         ('IN_PROGRESS', 'In Progress'),
@@ -21,7 +21,7 @@ class Project(models.fields.Model):
     def __str__(self):
         return self.title
 
-class Proposal(models.fields.Model):
+class Proposal(models.Model):
     STATUS_CHOICES = (
         ('PENDING', 'Pending'),
         ('ACCEPTED', 'Accepted'),
@@ -33,7 +33,7 @@ class Proposal(models.fields.Model):
     duration = models.IntegerField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
 
-class Task(models.fields.Model):
+class Task(models.Model):
     STATUS_CHOICES = (
         ('TO_DO', 'TO DO'),
         ('IN_PROGRESS', 'IN PROGRESS'),

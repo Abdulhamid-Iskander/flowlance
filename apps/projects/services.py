@@ -18,3 +18,20 @@ def get_recent_projects(user):
 
 def get_user_tasks(user):
     return Task.objects.filter(project__client=user)[:5]
+
+def create_new_project(user, data):
+    project = Project.objects.create(
+        client=user,
+        title=data.get('title'),
+        description=data.get('description'),
+        budget=data.get('budget'),
+        deadline=data.get('deadline'),
+    )
+    
+    tags = data.get('skills', '').split(',')
+    for tag in tags:
+        tag = tag.strip()
+        if tag:
+            project.skills_required.add(tag)
+            
+    return project
