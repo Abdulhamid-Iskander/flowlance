@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Q
-from .models import Project, Proposal, Task, Notification, Team, Milestone, Review
+from django.db.models import Q, Avg
+from .models import Project, Proposal, Task, Notification, Team, Milestone, Review, ProjectFile
 
 User = get_user_model()
 
@@ -8,8 +8,13 @@ def get_dashboard_stats(user):
     total_projects = Project.objects.filter(client=user).count()
     open_projects = Project.objects.filter(client=user, status='OPEN').count()
     active_workflows = Project.objects.filter(client=user, status='IN_PROGRESS').count()
-    pending_proposals = Proposal.objects.filter(project__client=user, status='PENDING').count()
-    return {'total_projects': total_projects, 'open_projects': open_projects, 'active_workflows': active_workflows, 'pending_proposals': pending_proposals}
+    avg_rating = Review.objects.filter(reviewee=user).aggregate(Avg('rating'))['rating__avg'] or 0
+    return {
+        'total_projects': total_projects,
+        'open_projects': open_projects,
+        'active_workflows': active_workflows,
+        'avg_rating': round(avg_rating, 1),
+    }
 
 def get_recent_projects(user):
     projects = Project.objects.filter(Q(client=user) | Q(proposals__freelancer=user, proposals__status='ACCEPTED')).distinct().order_by('-created_at')[:4]
@@ -46,41 +51,18 @@ def accept_proposal(proposal_id):
     Proposal.objects.filter(project=project).exclude(id=proposal_id).update(status='REJECTED')
     project.status = 'IN_PROGRESS'
     project.save()
-    for name in ['UI Design', 'Development', 'Testing', 'Delivery']:
-        Task.objects.create(project=project, name=name, assignee=proposal.freelancer)
-    Notification.objects.create(user=proposal.freelancer, message=f"Your proposal for {project.title} was accepted!")
+    for n in ['Design', 'Development', 'Testing', 'Final Delivery']:
+        Task.objects.create(project=project, name=n, status='TO_DO', assignee=proposal.freelancer)
 
 def update_task_status(task_id, new_status):
     task = Task.objects.get(id=task_id)
     task.status = new_status
     task.save()
-    Notification.objects.create(user=task.project.client, message=f"Task '{task.name}' is now {new_status}")
-
-def get_user_notifications(user):
-    return Notification.objects.filter(user=user).order_by('-created_at')
-
-def mark_notifications_read(user):
-    Notification.objects.filter(user=user, is_read=False).update(is_read=True)
-
-def get_user_teams(user):
-    return Team.objects.filter(Q(leader=user) | Q(members=user)).distinct()
-
-def get_available_members(user):
-    return User.objects.exclude(id=user.id)
-
-def create_new_team(user, data):
-    team = Team.objects.create(name=data.get('name'), leader=user)
-    team.members.add(*data.getlist('members'))
-    return team
-
-def get_all_open_projects(query=None):
-    projects = Project.objects.filter(status='OPEN').order_by('-created_at')
-    if query:
-        projects = projects.filter(Q(title__icontains=query) | Q(description__icontains=query)).distinct()
-    return projects
+    Notification.objects.create(user=task.project.client, message=f"Task '{task.name}' status updated to {new_status}")
 
 def create_milestone(project_id, data):
-    Project.objects.get(id=project_id).milestones.create(title=data.get('milestone_title'), amount=data.get('amount'), due_date=data.get('due_date'))
+    project = Project.objects.get(id=project_id)
+    Milestone.objects.create(project=project, title=data.get('milestone_title'), amount=data.get('amount'), due_date=data.get('due_date'))
 
 def pay_milestone(milestone_id):
     m = Milestone.objects.get(id=milestone_id)
@@ -97,3 +79,26 @@ def complete_project(project_id):
 def create_review(project_id, reviewer, data):
     p = Project.objects.get(id=project_id)
     Review.objects.create(project=p, reviewer=reviewer, reviewee=p.proposals.get(status='ACCEPTED').freelancer, rating=data.get('rating'), comment=data.get('comment'))
+
+def upload_project_file(project_id, user, file_obj, desc):
+    ProjectFile.objects.create(project_id=project_id, uploaded_by=user, file=file_obj, description=desc)
+
+def get_all_open_projects(query=None):
+    projects = Project.objects.filter(status='OPEN').order_by('-created_at')
+    if query: projects = projects.filter(Q(title__icontains=query) | Q(description__icontains=query)).distinct()
+    return projects
+
+def get_user_notifications(user):
+    return Notification.objects.filter(user=user).order_by('-created_at')
+
+def mark_notifications_read(user):
+    Notification.objects.filter(user=user, is_read=False).update(is_read=True)
+
+def get_user_teams(user):
+    return Team.objects.filter(Q(leader=user) | Q(members=user)).distinct()
+
+def create_new_team(user, data):
+    team = Team.objects.create(name=data.get('name'), leader=user)
+    member_ids = data.getlist('members')
+    if member_ids: team.members.add(*member_ids)
+    return team
