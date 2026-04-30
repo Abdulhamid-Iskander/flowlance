@@ -9,6 +9,15 @@
 <body style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: var(--bg-dark);">
     <div class="project-card" style="width: 400px; background-color: var(--white); padding: 40px;">
         <h2 style="text-align: center; margin-bottom: 30px; color: var(--bg-dark); font-size: 28px;">Flowlance</h2>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div style="background-color: #ffeef0; color: #ff4d4f; padding: 10px; border-radius: 6px; margin-bottom: 20px; text-align: center; font-size: 14px; border: 1px solid #ff4d4f;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
         <form method="POST">
             {% csrf_token %}
             <div style="margin-bottom: 20px;">

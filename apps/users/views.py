@@ -4,6 +4,9 @@ from django.contrib import messages
 from .models import User
 
 def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('projects:dashboard')
+        
     if request.method == 'POST':
         u = request.POST.get('username')
         p = request.POST.get('password')
@@ -12,10 +15,13 @@ def login_view(request):
             login(request, user)
             return redirect('projects:dashboard')
         else:
-            messages.error(request, "Invalid username or password.")
+            messages.error(request, "Invalid username or password. Please try again.")
     return render(request, 'users/login.html')
 
 def register_view(request):
+    if request.user.is_authenticated:
+        return redirect('projects:dashboard')
+        
     if request.method == 'POST':
         u = request.POST.get('username')
         e = request.POST.get('email')
