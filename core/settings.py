@@ -58,3 +58,7 @@ SECRET_KEY = 'django-insecure-flowlance-secret-key-test'
 DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+
+ROOT_URLCONF = 'core.urls'
+
+WSGI_APPLICATION = 'core.wsgi.application'
