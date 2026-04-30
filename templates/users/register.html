@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - Flowlance</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: var(--bg-dark);">
+    <div class="project-card" style="width: 400px; background-color: var(--white); padding: 40px;">
+        <h2 style="text-align: center; margin-bottom: 30px; color: var(--bg-dark); font-size: 28px;">Join Flowlance</h2>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div style="background-color: #ffeef0; color: #ff4d4f; padding: 10px; border-radius: 6px; margin-bottom: 20px; text-align: center; font-size: 14px; border: 1px solid #ff4d4f;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Username</label>
+                <input type="text" name="username" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Email</label>
+                <input type="email" name="email" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Role</label>
+                <select name="role" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                    <option value="CLIENT">Client (Post Projects)</option>
+                    <option value="FREELANCER">Freelancer (Work on Projects)</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Password</label>
+                <input type="password" name="password" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%; padding: 12px; font-size: 16px;">Create Account</button>
+        </form>
+        <p style="text-align: center; margin-top: 20px;">Already have an account? <a href="{% url 'users:login' %}" style="color: var(--primary-green); text-decoration: none; font-weight: bold;">Login</a></p>
+    </div>
+</body>
+</html>

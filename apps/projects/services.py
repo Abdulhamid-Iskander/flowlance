@@ -1,4 +1,8 @@
-from .models import Project, Proposal, Task, Notification
+from django.contrib.auth import get_user_model
+from django.db.models import Q
+from .models import Project, Proposal, Task, Notification, Team
+
+User = get_user_model()
 
 def get_dashboard_stats(user):
     total_projects = Project.objects.filter(client=user).count()
@@ -14,7 +18,7 @@ def get_dashboard_stats(user):
     }
 
 def get_recent_projects(user):
-    projects = Project.objects.filter(client=user).order_by('-created_at')[:2]
+    projects = Project.objects.filter(Q(client=user) | Q(proposals__freelancer=user)).distinct().order_by('-created_at')[:4]
     for project in projects:
         total_tasks = project.tasks.count()
         if total_tasks > 0:
@@ -93,5 +97,31 @@ def update_task_status(task_id, new_status):
         message=f"Task '{task.name}' status updated to {new_status}."
     )
 
+def get_user_notifications(user):
+    return Notification.objects.filter(user=user).order_by('-created_at')
+
 def mark_notifications_read(user):
     Notification.objects.filter(user=user, is_read=False).update(is_read=True)
+
+def get_user_teams(user):
+    return Team.objects.filter(Q(leader=user) | Q(members=user)).distinct()
+
+def get_available_members(user):
+    return User.objects.exclude(id=user.id)
+
+def create_new_team(user, data):
+    team = Team.objects.create(name=data.get('name'), leader=user)
+    member_ids = data.getlist('members')
+    if member_ids:
+        team.members.add(*member_ids)
+    return team
+
+def get_all_open_projects(query=None):
+    projects = Project.objects.filter(status='OPEN').order_by('-created_at')
+    if query:
+        projects = projects.filter(
+            Q(title__icontains=query) | 
+            Q(description__icontains=query) | 
+            Q(skills_required__name__icontains=query)
+        ).distinct()
+    return projects

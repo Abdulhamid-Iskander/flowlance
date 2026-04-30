@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flowlance - Dashboard</title>
+    <title>Flowlance - Workspace</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
@@ -15,39 +15,40 @@
             </div>
             <nav class="sidebar-menu">
                 <p class="menu-label">MAIN</p>
-                <a href="{% url 'projects:dashboard' %}" class="active">Dashboard</a>
-                <a href="#">Marketplace</a>
+                <a href="{% url 'projects:dashboard' %}">Dashboard</a>
+                <a href="{% url 'projects:marketplace' %}">Marketplace</a>
                 <a href="#">My Projects</a>
                 
                 <p class="menu-label">WORK</p>
                 <a href="#">Workflow</a>
-                <a href="#">Teams</a>
+                <a href="{% url 'projects:teams' %}">Teams</a>
                 <a href="#">Proposals</a>
                 <a href="#">Milestones</a>
                 
                 <p class="menu-label">OTHER</p>
-                <a href="#">Notifications</a>
+                <a href="{% url 'projects:notifications_list' %}">Notifications</a>
             </nav>
         </aside>
 
         <div class="main-content">
             <header class="top-navbar">
                 <div class="nav-links">
-                    <a href="{% url 'projects:dashboard' %}" class="active">Dashboard</a>
-                    <a href="#">Marketplace</a>
-                    <a href="#">Teams</a>
+                    <a href="{% url 'projects:dashboard' %}">Dashboard</a>
+                    <a href="{% url 'projects:marketplace' %}">Marketplace</a>
+                    <a href="{% url 'projects:teams' %}">Teams</a>
                     <a href="#">Workflow</a>
                 </div>
                 <div class="user-actions">
-                    <a href="{% url 'projects:read_notifications' %}" style="position: relative; text-decoration: none; margin-right: 15px;">
+                    <a href="{% url 'projects:notifications_list' %}" style="position: relative; text-decoration: none; margin-right: 15px;">
                         <span class="notification-icon" style="font-size: 22px;">🔔</span>
                         {% if unread_notifications_count > 0 %}
                         <span style="position: absolute; top: -5px; right: -8px; background-color: #ff4d4f; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px; font-weight: bold;">{{ unread_notifications_count }}</span>
                         {% endif %}
                     </a>
-                    <div class="user-profile">
-                        <span class="avatar">A</span>
-                        <span class="username">User</span>
+                    <div class="user-profile" style="display: flex; align-items: center; gap: 10px;">
+                        <span class="avatar">{{ request.user.username|make_list|first|upper }}</span>
+                        <span class="username" style="font-weight: bold;">{{ request.user.username }}</span>
+                        <a href="{% url 'users:logout' %}" style="color: #ff4d4f; text-decoration: none; font-size: 14px; margin-left: 10px; border-left: 1px solid var(--border-color); padding-left: 10px;">Logout</a>
                     </div>
                 </div>
             </header>

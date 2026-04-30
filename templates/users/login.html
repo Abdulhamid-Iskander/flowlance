@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Flowlance</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: var(--bg-dark);">
+    <div class="project-card" style="width: 400px; background-color: var(--white); padding: 40px;">
+        <h2 style="text-align: center; margin-bottom: 30px; color: var(--bg-dark); font-size: 28px;">Flowlance</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: bold;">Username</label>
+                <input type="text" name="username" required style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+            </div>
+            <div style="margin-bottom: 30px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: bold;">Password</label>
+                <input type="password" name="password" required style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%; padding: 12px; font-size: 16px;">Login</button>
+        </form>
+        <p style="text-align: center; margin-top: 20px;">Don't have an account? <a href="{% url 'users:register' %}" style="color: var(--primary-green); text-decoration: none; font-weight: bold;">Register</a></p>
+    </div>
+</body>
+</html>
