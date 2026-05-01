@@ -1,5 +1,6 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import User
 
@@ -40,3 +41,20 @@ def register_view(request):
 def logout_view(request):
     logout(request)
     return redirect('users:login')
+
+@login_required(login_url='users:login')
+def profile_view(request, username):
+    profile_user = get_object_or_404(User, username=username)
+    
+    if request.method == 'POST' and request.user == profile_user:
+        profile_user.bio = request.POST.get('bio')
+        profile_user.skills = request.POST.get('skills')
+        if 'profile_picture' in request.FILES:
+            profile_user.profile_picture = request.FILES['profile_picture']
+        profile_user.save()
+        return redirect('users:profile', username=username)
+        
+    return render(request, 'users/profile.html', {
+        'profile_user': profile_user,
+        'reviews': profile_user.received_reviews.all()
+    })
