@@ -78,3 +78,9 @@ class ProjectFile(models.Model):
     file = models.FileField(upload_to='project_files/')
     description = models.CharField(max_length=255)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+class Message(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
