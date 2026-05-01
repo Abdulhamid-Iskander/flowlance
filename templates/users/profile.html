@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="project-card" style="max-width: 800px; margin: 0 auto;">
+    <div style="display: flex; align-items: center; gap: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px;">
+        <div style="width: 80px; height: 80px; background-color: var(--primary-green); color: white; display: flex; align-items: center; justify-content: center; font-size: 32px; border-radius: 50%; font-weight: bold;">
+            {{ profile_user.username|make_list|first|upper }}
+        </div>
+        <div>
+            <h2>{{ profile_user.username }}</h2>
+            <span class="status-badge" style="background-color: var(--bg-dark); color: white;">{{ profile_user.get_role_display }}</span>
+        </div>
+    </div>
+
+    {% if request.user == profile_user %}
+    <form method="POST" style="background-color: var(--bg-light); padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+        {% csrf_token %}
+        <h4 style="margin-bottom: 15px;">Edit Profile</h4>
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Bio</label>
+            <textarea name="bio" rows="3" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">{{ profile_user.bio|default:"" }}</textarea>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Skills (comma separated)</label>
+            <input type="text" name="skills" value="{{ profile_user.skills|default:'' }}" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+        </div>
+        <button type="submit" class="btn-primary">Save Changes</button>
+    </form>
+    {% else %}
+        <div style="margin-bottom: 30px;">
+            <h4>About</h4>
+            <p style="color: var(--text-muted); margin-top: 5px;">{{ profile_user.bio|default:"No bio provided yet." }}</p>
+            <h4 style="margin-top: 15px;">Skills</h4>
+            <p style="font-weight: bold; color: var(--primary-green);">{{ profile_user.skills|default:"Not specified" }}</p>
+        </div>
+    {% endif %}
+
+    <h4>Reviews ({{ reviews.count }})</h4>
+    <div style="margin-top: 10px;">
+        {% for review in reviews %}
+        <div style="padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 10px;">
+            <p style="font-weight: bold; margin-bottom: 5px;">{{ review.project.title }} <span style="color: #f5a623;">(★ {{ review.rating }}/5)</span></p>
+            <p style="color: var(--text-dark);">"{{ review.comment }}"</p>
+            <small style="color: var(--text-muted);">By {{ review.reviewer.username }}</small>
+        </div>
+        {% empty %}
+        <p style="color: var(--text-muted);">No reviews yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
