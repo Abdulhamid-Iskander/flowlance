@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="project-card" style="text-align: center; padding: 50px; max-width: 600px; margin: 50px auto; background-color: #f0fdf4; border: 1px solid var(--primary-green);">
+    <h1 style="color: var(--primary-green); font-size: 60px; margin-bottom: 20px;">✅</h1>
+    <h2 style="margin-bottom: 15px;">Payment Successful!</h2>
+    <p style="font-size: 18px; margin-bottom: 30px; color: var(--text-dark);">
+        You have successfully paid <strong>${{ milestone.amount }}</strong> for the milestone: <br>
+        <strong style="color: var(--primary-green);">"{{ milestone.title }}"</strong>
+    </p>
+    <a href="{% url 'projects:project_detail' milestone.project.id %}" class="btn-primary" style="padding: 12px 30px; font-size: 16px; text-decoration: none;">Back to Project Workspace</a>
+</div>
+{% endblock %}

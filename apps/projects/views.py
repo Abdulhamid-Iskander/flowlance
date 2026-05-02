@@ -3,6 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from .models import Project, Proposal, Task, Team, Milestone, Message
 from .services import *
+import stripe
+from django.conf import settings
+from django.urls import reverse
 
 @login_required(login_url='users:login')
 def dashboard_view(request):
@@ -83,9 +86,36 @@ def pay_milestone_view(request, milestone_id):
     milestone = get_object_or_404(Milestone, id=milestone_id)
     if request.user != milestone.project.client:
         return HttpResponseForbidden("Unauthorized: Only the client can pay.")
-    pay_milestone(milestone_id)
-    return redirect(request.META.get('HTTP_REFERER', 'projects:dashboard'))
+    
+    # إعداد Stripe
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    
+    # إنشاء جلسة دفع (Checkout Session)
+    session = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=[{
+            'price_data': {
+                'currency': 'usd',
+                'product_data': {
+                    'name': f"Milestone: {milestone.title} - {milestone.project.title}",
+                },
+                'unit_amount': int(milestone.amount * 100), # Stripe بيحسب بالسنت
+            },
+            'quantity': 1,
+        }],
+        mode='payment',
+        success_url=request.build_absolute_uri(reverse('projects:payment_success', args=[milestone.id])),
+        cancel_url=request.build_absolute_uri(reverse('projects:project_detail', args=[milestone.project.id])),
+    )
+    return redirect(session.url, code=303)
 
+@login_required(login_url='users:login')
+def payment_success_view(request, milestone_id):
+    milestone = get_object_or_404(Milestone, id=milestone_id)
+    if milestone.status != 'PAID':
+        pay_milestone(milestone_id) # الدالة اللي في services.py بتحدث الحالة وتبعت إشعار
+        
+    return render(request, 'projects/payment_success.html', {'milestone': milestone})
 @login_required(login_url='users:login')
 def complete_project_action(request, pk):
     project = get_object_or_404(Project, pk=pk)

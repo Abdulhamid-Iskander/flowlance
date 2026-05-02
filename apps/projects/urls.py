@@ -14,4 +14,5 @@ urlpatterns = [
     path('milestone/<int:milestone_id>/pay/', views.pay_milestone_view, name='pay_milestone'),
     path('notifications/', views.notifications_list_view, name='notifications_list'),
     path('teams/', views.teams_view, name='teams'),
+    path('milestone/<int:milestone_id>/payment-success/', views.payment_success_view, name='payment_success'),
 ]
