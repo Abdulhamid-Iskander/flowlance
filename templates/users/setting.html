@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width:640px;margin:0 auto;">
+  <h2 style="margin-bottom:24px;color:var(--text-primary);">⚙️ Settings</h2>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div style="padding:10px 14px;border-radius:8px;margin-bottom:16px;font-size:13px;
+        {% if 'error' in message.tags %}background:#ffeef0;color:#ff4d4f;border:1px solid #ff4d4f;
+        {% else %}background:var(--hover-bg);color:var(--primary-green);border:1px solid rgba(0,230,118,0.3);{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Change Password -->
+  <div class="project-card" style="margin-bottom:24px;">
+    <h4 style="margin-bottom:20px;color:var(--text-primary);">🔒 Change Password</h4>
+    <form method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="change_password">
+      <div style="margin-bottom:13px;">
+        <label style="display:block;font-weight:600;font-size:13px;margin-bottom:5px;color:var(--text-primary);">Current Password</label>
+        <input type="password" name="old_password" required style="width:100%;padding:9px 12px;border:1px solid var(--input-border);border-radius:8px;font-size:13px;background:var(--input-bg);color:var(--text-primary);">
+      </div>
+      <div style="margin-bottom:13px;">
+        <label style="display:block;font-weight:600;font-size:13px;margin-bottom:5px;color:var(--text-primary);">New Password</label>
+        <input type="password" name="new_password" required style="width:100%;padding:9px 12px;border:1px solid var(--input-border);border-radius:8px;font-size:13px;background:var(--input-bg);color:var(--text-primary);">
+      </div>
+      <div style="margin-bottom:20px;">
+        <label style="display:block;font-weight:600;font-size:13px;margin-bottom:5px;color:var(--text-primary);">Confirm New Password</label>
+        <input type="password" name="new_password2" required style="width:100%;padding:9px 12px;border:1px solid var(--input-border);border-radius:8px;font-size:13px;background:var(--input-bg);color:var(--text-primary);">
+      </div>
+      <button type="submit" class="btn-primary" style="padding:10px 24px;font-size:14px;border-radius:8px;">🔒 Update Password</button>
+    </form>
+  </div>
+
+  <!-- Delete Account -->
+  <div class="project-card" style="border:1px solid #ff4d4f;">
+    <h4 style="margin-bottom:8px;color:#ff4d4f;">🗑️ Delete Account</h4>
+    <p style="color:var(--text-secondary);font-size:13px;margin-bottom:20px;">
+      This will permanently delete your account. <strong>Cannot be undone.</strong>
+    </p>
+    <button onclick="document.getElementById('deleteSection').style.display='block';this.style.display='none'"
+      style="background:#ffeef0;color:#ff4d4f;border:1px solid #ff4d4f;padding:9px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">
+      I want to delete my account
+    </button>
+    <div id="deleteSection" style="display:none;margin-top:16px;">
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="delete_account">
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">
+          Type your username <strong style="color:var(--text-primary);">{{ request.user.username }}</strong> to confirm:
+        </p>
+        <input type="text" name="confirm_delete" placeholder="{{ request.user.username }}" required
+          style="width:100%;padding:9px 12px;border:1px solid #ff4d4f;border-radius:8px;font-size:13px;background:var(--input-bg);color:var(--text-primary);margin-bottom:12px;">
+        <button type="submit"
+          style="background:#ff4d4f;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;">
+          ⚠️ Yes, Delete My Account
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

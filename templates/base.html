@@ -3,61 +3,298 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flowlance - Workspace</title>
+    <title>Flowlance</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        /* ══ SIDEBAR ══ */
+        .sidebar {
+            width: 220px;
+            min-width: 220px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--sidebar-border);
+            padding: 16px 10px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: width 0.25s ease, min-width 0.25s ease, padding 0.25s ease;
+        }
+        .sidebar.collapsed {
+            width: 56px;
+            min-width: 56px;
+            padding: 16px 8px;
+        }
+
+        /* Logo row */
+        .sidebar-logo-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            height: 36px;
+        }
+        .sidebar-logo-row h2 {
+            color: var(--primary-green);
+            font-weight: 800;
+            font-size: 19px;
+            white-space: nowrap;
+            overflow: hidden;
+            opacity: 1;
+            transition: opacity 0.2s;
+            flex: 1;
+        }
+        .sidebar.collapsed .sidebar-logo-row h2 { opacity: 0; width: 0; }
+
+        .sidebar-toggle {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid var(--sidebar-border);
+            border-radius: 7px;
+            width: 28px; height: 28px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+        .sidebar-toggle:hover { background: rgba(255,255,255,0.18); color: var(--text-primary); }
+
+        /* Profile mini card */
+        .sidebar-profile-card {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 8px;
+            background: var(--hover-bg);
+            border-radius: 10px;
+            margin-bottom: 16px;
+            text-decoration: none;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+        .sidebar.collapsed .sidebar-profile-card { justify-content: center; }
+        .sidebar.collapsed .sidebar-profile-text { display: none; }
+        .sidebar-avatar-img {
+            width: 34px; height: 34px; border-radius: 50%;
+            object-fit: cover; border: 2px solid var(--primary-green); flex-shrink: 0;
+        }
+        .sidebar-avatar-letter {
+            width: 34px; height: 34px;
+            background: var(--primary-green); color: #121c2d;
+            border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; font-weight: bold; font-size: 14px; flex-shrink: 0;
+        }
+
+        /* Nav */
+        .menu-label {
+            font-size: 10px; color: var(--text-secondary);
+            text-transform: uppercase; font-weight: 700;
+            letter-spacing: 0.8px;
+            padding: 12px 8px 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: opacity 0.2s, height 0.2s;
+        }
+        .sidebar.collapsed .menu-label { opacity: 0; height: 6px; padding: 3px 0; }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            position: relative;
+            transition: background 0.15s, color 0.15s;
+            margin-bottom: 1px;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: var(--hover-bg);
+            color: var(--primary-green);
+            font-weight: 700;
+        }
+
+        /* Icon — fixed size, no emoji clipping */
+        .nav-icon {
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 15px;
+            line-height: 1;
+        }
+
+        .nav-label {
+            overflow: hidden;
+            opacity: 1;
+            transition: opacity 0.2s, width 0.2s;
+            flex: 1;
+        }
+        .sidebar.collapsed .nav-label { opacity: 0; width: 0; overflow: hidden; }
+
+        /* Tooltip */
+        .sidebar.collapsed .nav-item:hover::after {
+            content: attr(data-label);
+            position: fixed;
+            left: 64px;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            padding: 5px 12px;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        /* Badge */
+        .nav-badge {
+            background: #ff4d4f; color: white;
+            border-radius: 10px; padding: 1px 6px;
+            font-size: 10px; font-weight: bold;
+            margin-left: auto; flex-shrink: 0;
+            display: none;
+        }
+        .nav-badge.show { display: inline; }
+        .sidebar.collapsed .nav-badge { display: none !important; }
+    </style>
 </head>
 <body>
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="logo">
-                <h2>Flowlance</h2>
-            </div>
-            <nav class="sidebar-menu">
-                <p class="menu-label">MAIN</p>
+<div class="app-container">
+
+    <!-- ══ SIDEBAR ══ -->
+    <aside class="sidebar" id="sidebar">
+
+        <div class="sidebar-logo-row">
+            <h2>Flowlance</h2>
+            <button class="sidebar-toggle" onclick="toggleSidebar()">⇄</button>
+        </div>
+
+        <nav>
+            <div class="menu-label">MAIN</div>
+            <a class="nav-item" href="{% url 'projects:dashboard' %}" data-label="Dashboard">
+                <span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span>
+            </a>
+            <a class="nav-item" href="{% url 'projects:marketplace' %}" data-label="Marketplace">
+                <span class="nav-icon">🛒</span><span class="nav-label">Marketplace</span>
+            </a>
+            <a class="nav-item" href="#" data-label="My Projects">
+                <span class="nav-icon">📁</span><span class="nav-label">My Projects</span>
+            </a>
+
+            <div class="menu-label">WORK</div>
+            <a class="nav-item" href="#" data-label="Workflow">
+                <span class="nav-icon">⚙️</span><span class="nav-label">Workflow</span>
+            </a>
+            <a class="nav-item" href="{% url 'projects:teams' %}" data-label="Teams">
+                <span class="nav-icon">👥</span><span class="nav-label">Teams</span>
+            </a>
+            <a class="nav-item" href="#" data-label="Proposals">
+                <span class="nav-icon">📄</span><span class="nav-label">Proposals</span>
+            </a>
+            <a class="nav-item" href="#" data-label="Milestones">
+                <span class="nav-icon">🎯</span><span class="nav-label">Milestones</span>
+            </a>
+
+            <div class="menu-label">ACCOUNT</div>
+            <a class="nav-item" href="{% url 'users:profile' request.user.username %}" data-label="My Profile">
+                <span class="nav-icon">👤</span><span class="nav-label">My Profile</span>
+            </a>
+            <a class="nav-item" href="{% url 'users:friend_requests' %}" data-label="Friend Requests">
+                <span class="nav-icon">🤝</span><span class="nav-label">Friend Requests</span>
+                <span class="nav-badge" id="sidebarFriendBadge"></span>
+            </a>
+            <a class="nav-item" href="{% url 'projects:notifications_list' %}" data-label="Notifications">
+                <span class="nav-icon">🔔</span><span class="nav-label">Notifications</span>
+                <span class="nav-badge" id="sidebarNotifBadge"></span>
+            </a>
+            <a class="nav-item" href="{% url 'users:settings' %}" data-label="Settings">
+                <span class="nav-icon">⚙️</span><span class="nav-label">Settings</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- ══ MAIN ══ -->
+    <div class="main-content">
+        <header class="top-navbar">
+            <div class="nav-links">
                 <a href="{% url 'projects:dashboard' %}">Dashboard</a>
                 <a href="{% url 'projects:marketplace' %}">Marketplace</a>
-                <a href="#">My Projects</a>
-                
-                <p class="menu-label">WORK</p>
-                <a href="#">Workflow</a>
                 <a href="{% url 'projects:teams' %}">Teams</a>
-                <a href="#">Proposals</a>
-                <a href="#">Milestones</a>
-                
-                <p class="menu-label">OTHER</p>
-                <a href="{% url 'projects:notifications_list' %}">Notifications</a>
-            </nav>
-        </aside>
-
-        <div class="main-content">
-            <header class="top-navbar">
-                <div class="nav-links">
-                    <a href="{% url 'projects:dashboard' %}">Dashboard</a>
-                    <a href="{% url 'projects:marketplace' %}">Marketplace</a>
-                    <a href="{% url 'projects:teams' %}">Teams</a>
-                    <a href="#">Workflow</a>
-                </div>
-                <div class="user-actions">
-                    <a href="{% url 'projects:notifications_list' %}" style="position: relative; text-decoration: none; margin-right: 15px;">
-                        <span class="notification-icon" style="font-size: 22px;">🔔</span>
-                        {% if unread_notifications_count > 0 %}
-                        <span style="position: absolute; top: -5px; right: -8px; background-color: #ff4d4f; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px; font-weight: bold;">{{ unread_notifications_count }}</span>
+            </div>
+            <div class="user-actions">
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <span id="themeIcon">🌙</span>
+                    <span id="themeLabel">Dark</span>
+                </button>
+                <a href="{% url 'users:friend_requests' %}" style="position:relative;text-decoration:none;" title="Friend Requests">
+                    <span style="font-size:20px;">🤝</span>
+                    <span id="friendBadge" style="display:none;position:absolute;top:-5px;right:-8px;background:#ff4d4f;color:white;border-radius:50%;padding:2px 5px;font-size:10px;font-weight:bold;"></span>
+                </a>
+                <a href="{% url 'projects:notifications_list' %}" style="position:relative;text-decoration:none;" title="Notifications">
+                    <span style="font-size:20px;">🔔</span>
+                    <span id="notifBadge" style="display:none;position:absolute;top:-5px;right:-8px;background:#ff4d4f;color:white;border-radius:50%;padding:2px 5px;font-size:10px;font-weight:bold;"></span>
+                </a>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <a href="{% url 'users:profile' request.user.username %}" style="text-decoration:none;display:flex;align-items:center;gap:8px;">
+                        {% if request.user.profile_picture %}
+                            <img src="{{ request.user.profile_picture.url }}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--primary-green);">
+                        {% else %}
+                            <span class="avatar">{{ request.user.username|make_list|first|upper }}</span>
                         {% endif %}
+                        <span style="font-weight:bold;color:white;">{{ request.user.username }}</span>
                     </a>
-                    <div class="user-profile" style="display: flex; align-items: center; gap: 10px;">
-                        <span class="avatar">{{ request.user.username|make_list|first|upper }}</span>
-                        <span class="username" style="font-weight: bold;">{{ request.user.username }}</span>
-                        <a href="{% url 'users:logout' %}" style="color: #ff4d4f; text-decoration: none; font-size: 14px; margin-left: 10px; border-left: 1px solid var(--border-color); padding-left: 10px;">Logout</a>
-                    </div>
+                    <a href="{% url 'users:logout' %}" style="color:#ff4d4f;text-decoration:none;font-size:13px;border-left:1px solid rgba(255,255,255,0.2);padding-left:10px;">Logout</a>
                 </div>
-            </header>
-
-            <main class="page-content">
-                {% block content %}
-                {% endblock %}
-            </main>
-        </div>
+            </div>
+        </header>
+        <main class="page-content">{% block content %}{% endblock %}</main>
     </div>
+</div>
+
+<script>
+// Dark mode
+if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark-mode');
+    document.getElementById('themeIcon').textContent  = '☀️';
+    document.getElementById('themeLabel').textContent = 'Light';
+}
+function toggleTheme() {
+    const d = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('theme', d ? 'dark' : 'light');
+    document.getElementById('themeIcon').textContent  = d ? '☀️' : '🌙';
+    document.getElementById('themeLabel').textContent = d ? 'Light' : 'Dark';
+}
+
+// Sidebar
+const sb = document.getElementById('sidebar');
+if (localStorage.getItem('sidebar') === 'collapsed') sb.classList.add('collapsed');
+function toggleSidebar() {
+    sb.classList.toggle('collapsed');
+    localStorage.setItem('sidebar', sb.classList.contains('collapsed') ? 'collapsed' : 'open');
+}
+
+// Notifications polling
+function setBadge(el, n) { if(!el) return; el.style.display = n>0?'inline':'none'; el.textContent=n; }
+function setSidebarBadge(el, n) { if(!el) return; n>0?el.classList.add('show'):el.classList.remove('show'); el.textContent=n; }
+function poll() {
+    fetch("{% url 'users:notifications_count_api' %}").then(r=>r.json()).then(d=>{
+        setBadge(document.getElementById('notifBadge'), d.unread);
+        setBadge(document.getElementById('friendBadge'), d.friend_requests);
+        setSidebarBadge(document.getElementById('sidebarNotifBadge'), d.unread);
+        setSidebarBadge(document.getElementById('sidebarFriendBadge'), d.friend_requests);
+    }).catch(()=>{});
+}
+poll(); setInterval(poll, 15000);
+</script>
 </body>
 </html>

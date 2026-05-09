@@ -8,3 +8,4 @@ urlpatterns = [
     path('auth/', include('apps.users.urls')),
     path('', include('apps.projects.urls')), 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

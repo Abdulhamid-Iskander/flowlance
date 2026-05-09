@@ -1,51 +1,276 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="project-card" style="max-width: 800px; margin: 0 auto;">
-    <div style="display: flex; align-items: center; gap: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px;">
-        <div style="width: 80px; height: 80px; background-color: var(--primary-green); color: white; display: flex; align-items: center; justify-content: center; font-size: 32px; border-radius: 50%; font-weight: bold;">
-            {{ profile_user.username|make_list|first|upper }}
-        </div>
-        <div>
-            <h2>{{ profile_user.username }}</h2>
-            <span class="status-badge" style="background-color: var(--bg-dark); color: white;">{{ profile_user.get_role_display }}</span>
-        </div>
+<div style="max-width:960px;margin:0 auto;">
+
+  <!-- CARD الرئيسي -->
+  <div class="project-card" style="padding:0;overflow:hidden;margin-bottom:24px;">
+
+    <!-- Cover Image -->
+    <div style="height:200px;position:relative;overflow:hidden;background:linear-gradient(135deg,#121c2d 0%,#1a3a2a 100%);">
+      {% if profile_user.cover_picture %}
+        <img src="{{ profile_user.cover_picture.url }}" style="width:100%;height:100%;object-fit:cover;">
+      {% endif %}
+
+      <!-- زرار تغيير الـ cover -->
+      {% if request.user == profile_user %}
+      <label for="cover-upload" style="position:absolute;top:12px;right:12px;width:34px;height:34px;background:rgba(255,255,255,0.9);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);" title="Change cover">
+        ✏️
+      </label>
+      <form id="cover-form" method="POST" action="{% url 'users:edit_profile' profile_user.username %}" enctype="multipart/form-data" style="display:none;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save">
+        <input type="file" id="cover-upload" name="cover_picture" accept="image/*" onchange="document.getElementById('cover-form').submit();">
+      </form>
+      {% endif %}
     </div>
 
-    {% if request.user == profile_user %}
-    <form method="POST" style="background-color: var(--bg-light); padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-        {% csrf_token %}
-        <h4 style="margin-bottom: 15px;">Edit Profile</h4>
-        <div style="margin-bottom: 15px;">
-            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Bio</label>
-            <textarea name="bio" rows="3" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">{{ profile_user.bio|default:"" }}</textarea>
-        </div>
-        <div style="margin-bottom: 15px;">
-            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Skills (comma separated)</label>
-            <input type="text" name="skills" value="{{ profile_user.skills|default:'' }}" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-        </div>
-        <button type="submit" class="btn-primary">Save Changes</button>
-    </form>
-    {% else %}
-        <div style="margin-bottom: 30px;">
-            <h4>About</h4>
-            <p style="color: var(--text-muted); margin-top: 5px;">{{ profile_user.bio|default:"No bio provided yet." }}</p>
-            <h4 style="margin-top: 15px;">Skills</h4>
-            <p style="font-weight: bold; color: var(--primary-green);">{{ profile_user.skills|default:"Not specified" }}</p>
-        </div>
-    {% endif %}
+    <!-- Avatar + Edit button row -->
+    <div style="position:relative;padding:0 30px;">
 
-    <h4>Reviews ({{ reviews.count }})</h4>
-    <div style="margin-top: 10px;">
+      <!-- Avatar -->
+      <div style="position:absolute;top:-60px;left:30px;">
+        {% if profile_user.profile_picture %}
+          <img src="{{ profile_user.profile_picture.url }}"
+               style="width:120px;height:120px;border-radius:50%;border:4px solid white;object-fit:cover;box-shadow:0 4px 16px rgba(0,0,0,0.3);">
+        {% else %}
+          <div style="width:120px;height:120px;background:var(--primary-green);color:#121c2d;display:flex;align-items:center;justify-content:center;font-size:46px;border-radius:50%;border:4px solid white;font-weight:bold;box-shadow:0 4px 16px rgba(0,0,0,0.3);">
+            {{ profile_user.username|make_list|first|upper }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Edit profile button (top right) -->
+      {% if request.user == profile_user %}
+      <div style="display:flex;justify-content:flex-end;padding-top:14px;">
+        <a href="{% url 'users:edit_profile' profile_user.username %}"
+           style="width:34px;height:34px;background:var(--hover-bg);border:1px solid var(--border-color);border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:15px;" title="Edit Profile">✏️</a>
+      </div>
+      {% else %}
+      <div style="padding-top:14px;"></div>
+      {% endif %}
+
+    </div>
+
+    <!-- Name + Info -->
+    <div style="padding:70px 30px 24px;">
+
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+
+        <!-- Left: Name + details -->
+        <div>
+          <h2 style="font-size:24px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">
+            {{ profile_user.full_name|default:profile_user.username }}
+          </h2>
+          {% if profile_user.bio %}
+          <p style="color:var(--text-secondary);font-size:14px;margin-bottom:6px;">{{ profile_user.bio|truncatechars:80 }}</p>
+          {% endif %}
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px;color:var(--text-secondary);margin-bottom:10px;">
+            {% if profile_user.location %}
+              <span>📍 {{ profile_user.location }}</span>
+              <span style="color:var(--border-color);">·</span>
+            {% endif %}
+            <span style="color:var(--primary-green);font-weight:600;">👥 {{ friends_count }} connections</span>
+          </div>
+
+          <!-- Action buttons -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+            {% if request.user != profile_user %}
+              {% if friend_status == None %}
+                <a href="{% url 'users:send_friend_request' profile_user.username %}"
+                   style="background:var(--primary-green);color:#121c2d;padding:7px 20px;border-radius:20px;font-size:13px;font-weight:700;text-decoration:none;">➕ Connect</a>
+              {% elif friend_status == 'PENDING' %}
+                <span style="background:var(--hover-bg);color:var(--text-secondary);padding:7px 20px;border-radius:20px;font-size:13px;border:1px solid var(--border-color);">⏳ Pending</span>
+              {% elif friend_status == 'ACCEPTED' %}
+                <span style="background:rgba(0,230,118,0.1);color:var(--primary-green);padding:7px 20px;border-radius:20px;font-size:13px;font-weight:600;border:1px solid rgba(0,230,118,0.3);">✅ Connected</span>
+              {% endif %}
+            {% endif %}
+
+            {% if profile_user.linkedin %}
+              <a href="{{ profile_user.linkedin }}" target="_blank"
+                 style="background:#0077b5;color:white;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;text-decoration:none;">in LinkedIn</a>
+            {% endif %}
+            {% if profile_user.instagram %}
+              <a href="{{ profile_user.instagram }}" target="_blank"
+                 style="background:linear-gradient(45deg,#f09433,#dc2743,#bc1888);color:white;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;text-decoration:none;">📸 Instagram</a>
+            {% endif %}
+            {% if profile_user.facebook %}
+              <a href="{{ profile_user.facebook }}" target="_blank"
+                 style="background:#1877f2;color:white;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;text-decoration:none;">f Facebook</a>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Right: Role + hourly rate -->
+        <div style="text-align:right;">
+          <span style="background:var(--hover-bg);color:var(--primary-green);padding:5px 14px;border-radius:20px;font-size:13px;font-weight:700;border:1px solid rgba(0,230,118,0.3);display:inline-block;margin-bottom:8px;">
+            {{ profile_user.get_role_display }}
+          </span>
+          {% if profile_user.hourly_rate %}
+          <div style="color:#f5a623;font-weight:700;font-size:14px;">💰 ${{ profile_user.hourly_rate }}/hr</div>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending Friend Requests -->
+  {% if request.user == profile_user and pending_requests %}
+  <div class="project-card" style="margin-bottom:24px;border:1px solid rgba(245,158,11,0.3);">
+    <h4 style="margin-bottom:14px;color:var(--text-primary);">👥 Friend Requests ({{ pending_requests|length }})</h4>
+    {% for freq in pending_requests %}
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--page-bg);border-radius:8px;margin-bottom:8px;border:1px solid var(--border-color);">
+      <a href="{% url 'users:profile' freq.from_user.username %}" style="text-decoration:none;display:flex;align-items:center;gap:10px;">
+        {% if freq.from_user.profile_picture %}
+          <img src="{{ freq.from_user.profile_picture.url }}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+        {% else %}
+          <div style="width:36px;height:36px;background:var(--primary-green);color:#121c2d;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;">
+            {{ freq.from_user.username|make_list|first|upper }}
+          </div>
+        {% endif %}
+        <div>
+          <div style="font-weight:600;font-size:13px;color:var(--text-primary);">{{ freq.from_user.full_name|default:freq.from_user.username }}</div>
+          <div style="font-size:11px;color:var(--text-secondary);">@{{ freq.from_user.username }}</div>
+        </div>
+      </a>
+      <div style="display:flex;gap:8px;">
+        <a href="{% url 'users:respond_friend_request' freq.id 'accept' %}" style="background:var(--primary-green);color:#121c2d;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;text-decoration:none;">Accept</a>
+        <a href="{% url 'users:respond_friend_request' freq.id 'reject' %}" style="background:var(--hover-bg);color:var(--text-secondary);padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid var(--border-color);">Decline</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- BODY GRID -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+
+    <!-- LEFT -->
+    <div>
+      <!-- About + Skills -->
+      <div class="project-card" style="margin-bottom:24px;">
+        <h4 style="margin-bottom:12px;color:var(--text-primary);">About</h4>
+        <p style="color:var(--text-secondary);line-height:1.7;font-size:14px;">{{ profile_user.bio|default:"No bio yet." }}</p>
+        {% if profile_user.skills %}
+        <h4 style="margin-top:20px;margin-bottom:10px;color:var(--text-primary);">Skills</h4>
+        <div style="display:flex;flex-wrap:wrap;gap:7px;">
+          {% for skill in profile_user.skills.split %}
+            <span style="background:var(--hover-bg);color:var(--primary-green);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(0,230,118,0.3);">{{ skill }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Reviews -->
+      <div class="project-card">
+        <h4 style="margin-bottom:15px;color:var(--text-primary);">⭐ Reviews ({{ reviews.count }})</h4>
         {% for review in reviews %}
-        <div style="padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 10px;">
-            <p style="font-weight: bold; margin-bottom: 5px;">{{ review.project.title }} <span style="color: #f5a623;">(★ {{ review.rating }}/5)</span></p>
-            <p style="color: var(--text-dark);">"{{ review.comment }}"</p>
-            <small style="color: var(--text-muted);">By {{ review.reviewer.username }}</small>
+        <div style="padding:12px;border:1px solid var(--border-color);border-radius:8px;margin-bottom:10px;background:var(--page-bg);">
+          <p style="font-weight:bold;font-size:14px;color:var(--text-primary);">{{ review.project.title }} <span style="color:#f5a623;">(★ {{ review.rating }}/5)</span></p>
+          <p style="color:var(--text-secondary);font-size:13px;">"{{ review.comment }}"</p>
+          <small style="color:var(--text-secondary);">By {{ review.reviewer.username }}</small>
         </div>
         {% empty %}
-        <p style="color: var(--text-muted);">No reviews yet.</p>
+        <p style="color:var(--text-secondary);font-size:14px;">No reviews yet.</p>
         {% endfor %}
+      </div>
     </div>
+
+    <!-- RIGHT -->
+    <div>
+      <!-- Profile Info -->
+      <div class="project-card" style="margin-bottom:24px;">
+        <h4 style="margin-bottom:16px;color:var(--text-primary);">Profile Info</h4>
+        <div style="display:flex;flex-direction:column;">
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-color);">
+            <span style="color:var(--text-secondary);font-size:13px;">Username</span>
+            <span style="font-weight:600;font-size:13px;color:var(--text-primary);">{{ profile_user.username }}</span>
+          </div>
+          {% if profile_user.full_name %}
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-color);">
+            <span style="color:var(--text-secondary);font-size:13px;">Full Name</span>
+            <span style="font-weight:600;font-size:13px;color:var(--text-primary);">{{ profile_user.full_name }}</span>
+          </div>
+          {% endif %}
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-color);">
+            <span style="color:var(--text-secondary);font-size:13px;">Role</span>
+            <span style="font-weight:600;font-size:13px;color:var(--text-primary);">{{ profile_user.get_role_display }}</span>
+          </div>
+          {% if profile_user.location %}
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-color);">
+            <span style="color:var(--text-secondary);font-size:13px;">Location</span>
+            <span style="font-weight:600;font-size:13px;color:var(--text-primary);">{{ profile_user.location }}</span>
+          </div>
+          {% endif %}
+          {% if profile_user.hourly_rate %}
+          <div style="display:flex;justify-content:space-between;padding:10px 0;">
+            <span style="color:var(--text-secondary);font-size:13px;">Hourly Rate</span>
+            <span style="font-weight:700;color:var(--primary-green);font-size:13px;">${{ profile_user.hourly_rate }}/hr</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Portfolio -->
+      <div class="project-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h4 style="color:var(--text-primary);">🗂️ Portfolio ({{ portfolio|length }})</h4>
+          {% if request.user == profile_user %}
+          <button onclick="document.getElementById('addPortfolioForm').style.display='block';this.style.display='none'"
+                  style="background:var(--primary-green);color:#121c2d;border:none;padding:6px 14px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;">+ Add</button>
+          {% endif %}
+        </div>
+
+        {% if request.user == profile_user %}
+        <div id="addPortfolioForm" style="display:none;background:var(--page-bg);padding:16px;border-radius:8px;margin-bottom:16px;border:1px solid var(--border-color);">
+          <form method="POST" action="{% url 'users:add_portfolio' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="text" name="title" placeholder="Project title *" required
+                   style="width:100%;padding:8px 10px;border:1px solid var(--input-border);border-radius:6px;margin-bottom:8px;background:var(--input-bg);color:var(--text-primary);font-size:13px;">
+            <textarea name="description" placeholder="Short description..." rows="2"
+                      style="width:100%;padding:8px 10px;border:1px solid var(--input-border);border-radius:6px;margin-bottom:8px;background:var(--input-bg);color:var(--text-primary);font-size:13px;resize:vertical;"></textarea>
+            <input type="url" name="link" placeholder="Link (optional)"
+                   style="width:100%;padding:8px 10px;border:1px solid var(--input-border);border-radius:6px;margin-bottom:8px;background:var(--input-bg);color:var(--text-primary);font-size:13px;">
+            <input type="file" name="image" accept="image/*"
+                   style="width:100%;padding:6px;border:1px solid var(--input-border);border-radius:6px;margin-bottom:10px;background:var(--input-bg);color:var(--text-primary);font-size:12px;">
+            <div style="display:flex;gap:8px;">
+              <button type="submit" class="btn-primary" style="flex:1;padding:8px;font-size:13px;border-radius:6px;">Save</button>
+              <button type="button" onclick="document.getElementById('addPortfolioForm').style.display='none'"
+                      style="flex:1;padding:8px;font-size:13px;border-radius:6px;border:1px solid var(--border-color);background:transparent;color:var(--text-primary);cursor:pointer;">Cancel</button>
+            </div>
+          </form>
+        </div>
+        {% endif %}
+
+        {% for item in portfolio %}
+        <div style="padding:12px;border:1px solid var(--border-color);border-radius:8px;margin-bottom:10px;background:var(--page-bg);">
+          {% if item.image %}
+            <img src="{{ item.image.url }}" style="width:100%;height:120px;object-fit:cover;border-radius:6px;margin-bottom:8px;">
+          {% endif %}
+          <div style="display:flex;justify-content:space-between;align-items:start;">
+            <div>
+              <p style="font-weight:700;font-size:14px;color:var(--text-primary);">{{ item.title }}</p>
+              {% if item.description %}
+                <p style="color:var(--text-secondary);font-size:12px;margin-top:3px;">{{ item.description }}</p>
+              {% endif %}
+              {% if item.link %}
+                <a href="{{ item.link }}" target="_blank" style="color:var(--primary-green);font-size:12px;text-decoration:none;margin-top:4px;display:inline-block;">🔗 View Project</a>
+              {% endif %}
+            </div>
+            {% if request.user == profile_user %}
+              <a href="{% url 'users:delete_portfolio' item.id %}" onclick="return confirm('Delete this item?')"
+                 style="color:#ff4d4f;font-size:12px;text-decoration:none;margin-left:8px;">🗑️</a>
+            {% endif %}
+          </div>
+        </div>
+        {% empty %}
+        <p style="color:var(--text-secondary);font-size:14px;">No portfolio items yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
 </div>
 {% endblock %}

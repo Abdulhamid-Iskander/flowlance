@@ -126,7 +126,11 @@ def complete_project_action(request, pk):
 
 @login_required(login_url='users:login')
 def notifications_list_view(request):
+    from django.http import JsonResponse as JR
     notifications = get_user_notifications(request.user)
+    if request.GET.get('json'):
+        count = notifications.filter(is_read=False).count()
+        return JR({'count': count})
     mark_notifications_read(request.user)
     return render(request, 'projects/notifications.html', {'notifications': notifications})
 

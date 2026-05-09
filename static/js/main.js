@@ -1,0 +1,1 @@
+fetch("{% url 'projects:notifications_list' %}?json=1")
